@@ -1,8 +1,6 @@
 ##################################################################################
-#################################################################################
 ########### GENERALIZED LINEAR MIXED MODELS WITH  APPLICATIONS IN AGRICULTURE AND BIOLOGY
 ##### ANALYSIS OF COVARIANCE
-
 
 ########################################
 ##### Analisis convariance
@@ -16,7 +14,7 @@ library(emmeans)
 library(agricolae)
 library(multcomp) 
 library(stringi)
-library(C)
+
 df<- read.csv("table4.1.csv",header = TRUE)
 head(df)
 
@@ -34,7 +32,7 @@ summary(model_ovules)
 anova(model_ovules,ddf="Satterthwaite")
 
 lsmeans_df <- emmeans(model_ovules, "Population", type = "interaction")
-#### compartion of means
+#### comparation of means
 cld(lsmeans_df, alpha = 0.05, Letters = LETTERS)
 
 ######################################################
