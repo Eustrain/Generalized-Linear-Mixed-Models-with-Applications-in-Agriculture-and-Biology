@@ -1,7 +1,7 @@
 ##################################################################################
 ########### GENERALIZED LINEAR MIXED MODELS WITH  APPLICATIONS IN AGRICULTURE AND BIOLOGY
 
-
+### Eustrain 
 ##### ANALYSIS OF COVARIANCE
 library(lme4)
 library(lsmeans)
