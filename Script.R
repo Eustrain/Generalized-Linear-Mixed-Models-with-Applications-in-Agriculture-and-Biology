@@ -1,6 +1,10 @@
-#############################
-##############################
+##################################################################################
+########### GENERALIZED LINEAR MIXED MODELS WITH  APPLICATIONS IN AGRICULTURE AND BIOLOGY
 ##### ANALYSIS OF COVARIANCE
+
+########################################
+##### Analisis convariance
+
 library(lme4)
 library(lsmeans)
 library(tidyverse)
@@ -8,34 +12,32 @@ library(lmerTest)
 library(glmer)
 library(emmeans)
 library(agricolae)
-library(multcomp)
+library(multcomp) 
 library(stringi)
 
+df<- read.csv("table4.1.csv",header = TRUE)
+head(df)
 
-########################################
-########################################
-##### Analisis convariance
-datos <- read.csv("table4.1.csv",header = TRUE)
-head(datos)
-
-datos_analisis<- datos %>% 
+datos<- df %>% 
   mutate(xbar= Total.no..of.flowers-mean(Total.no..of.flowers)) %>% 
- # mutate(Population=as.factor(Population)) %>% 
+  mutate(Population=as.factor(Population)) %>% 
   rename(plants=Total.no..of.flowers)  
   mutate(plants=as.factor(plants))
 
-str(datos_analisis)
+str(datos)
 
-model_ovules <- lmer(Eggs~Population+xbar+Population*xbar+(1|plants:Population),data = datos_analisis)
+model_ovules <- lmer(Eggs~Population*xbar+(1|plants/Population),data = datos)
 summary(model_ovules)
 
 anova(model_ovules,ddf="Satterthwaite")
-pigs.emm <- emmeans(model_ovules, "Population", type = "interaction")
 
-cld(pigs.emm, alpha = 0.05, Letters = LETTERS)
+lsmeans_df <- emmeans(model_ovules, "Population", type = "interaction")
+#### comparation of means
+cld(lsmeans_df, alpha = 0.05, Letters = LETTERS)
+
 ######################################################
-######################################################
-###### Exercies
+
+###### Exercises
 
 table1.28 <- read.csv("table1.28.csv",header = TRUE)
 
@@ -61,7 +63,7 @@ table1.29<- table1.29 %>%
   as.data.frame()
 
 head(table1.29)
-
+####
 ### modelo yi = means + Trt+ Species+ Trt*Species+error
 modelo_1.29 <- lm(growth~Trt*Species,data = table1.29)
 anova_1.29 <- anova(modelo_1.29)
@@ -70,38 +72,38 @@ lsmeans_1.29<- lsmeans(modelo_1.29,~Trt|Species)
 
 cld(lsmeans_1.29, alpha = 0.05, Letters = LETTERS)
 #####################################################
+###Chapter 2 Generalized Linear Models
+
+
+
+
+
+
+#######################################################
 ####### percentaje of germinated seed 
-library(tidyverse)
 df <- read.csv("table3.2.csv",header = TRUE)
 head(df)
-df_anv<- df %>% mutate(Tr.=as.factor(Tr.),y2=y/n) 
+datos<- df %>% mutate(Tr.=as.factor(Tr.),y2=(y/n)) 
 
-
-
-anv <- lm(y~Tr.,data=df_anv)
+anv <- lm(y~Tr.,data=datos)
 anv1<- anova(anv)
 summary(anv)
-
-#############################################
-###########################################
 ### we estimated means foe each trt
 t1<-coef(anv)[1] 
 t2<- coef(anv)[1]+coef(anv)[2]
 t3<- coef(anv)[1]+coef(anv)[3]
 ##############################################
-#############################################
 ### difference between treatments
 
 # t1-t2= (n+t1)-(n+t2)= t1-t2
 t1-t2
 t1-t3
 t2-t3
-
 ## or
-anv2 <- lm(y~1+Tr.,data=df_anv)
+anv2 <- lm(y~1+Tr.,data= datos)
 summary(anv2)
 
-#######
+## or 
 library(sasLM)
 library(emmeans)
 LSM(y~Tr.,df_anv)
@@ -111,14 +113,14 @@ T2 <- c(0,1,0)
 contrast(emm1, method = list(T1 - T2) )
 T3 <- c(0,0,1)
 contrast(emm1, method = list(T2-T3) )
-
+#### using emmeans
 emmeans(anv, specs = pairwise ~ Tr., 
         at = list(sub.rate = c("Trt1", "Trt3") ) )
 
 ######################################################
-################ binomial data
-head(df_anv)
-germi <- glm(y2~Tr.-1,family = "binomial"(link = "logit"),data = df_anv)
+################ analyze the same data, also using a CRD assuming a binomial
+head(datos)
+germi <- glm(y2~1+Tr.,family = "binomial",data = datos)
 summary(germi)
 n1_coef <- coef(germi)[1]
 n2_coef <- coef(germi)[1]+coef(germi)[2]
@@ -129,8 +131,6 @@ n1_coef-n2_coef
 glm_coef <- emmeans(germi,"Tr.")
 
 
-log(1.6)
-
 n1<- c(1,0,0)
 n2 <- c(0,1,0)
 n3 <- c(0,0,1)
@@ -138,63 +138,63 @@ contrast(glm_coef, method = list(n1 - n2),trans = "log")
 contrast(glm_coef, method = list(n1 - n3))
 contrast(glm_coef, method = list(n2 - n3))
 
-
-
 ##### SAME RESULT THAR BOOK
-GLM(y2~Tr.,Data = df_anv,BETA = TRUE,EMEAN = TRUE)
+ 
+GLM(y2~Tr.,Data = datos,BETA = TRUE,EMEAN = TRUE)
 ###################################################
 ##### CALCULATE THE PROBAILITY
 
-odds<- exp(coef(germi))
-odds/(1+odds)
+odds_1 <- exp(n1_coef)
+odds_1/(1+odds_1)
+odd_2 <- exp(n2_coef)
+odd_2/(1+odd_2)
+odd_3 <- exp(n3_coef)
+odd_3/(1+odd_3)
 
-########################################
-## oddsratio
-pairs(glm_coef)
+emmeans(germi,"Tr.")
 
-#####################################################
-## Trt least square means
+###(a) Odds ratio estimates
+c2<- emmeans(germi,"Tr.", type = "mu")
+contrast(c2, method = list(n1 - n3))
+contrast(c2, method = list(n1 - n3))
+###(b) Trt least squares means
 
-trt_lsm<- as.data.frame(emmeans(germi,"Tr.", type = "mu"))
-trt_lsm$Estimae <- coef(germi)
-#################################################
-### Diferrences of trt least squares means
+emmeans(germi,"Tr.")
 
-contrast(glm_coef, method = list(n1 - n2))
+### (c) Differences of Trt least squares means
+contrast(glm_coef, method = list(n1 - n2),trans = "log")
 contrast(glm_coef, method = list(n1 - n3))
 contrast(glm_coef, method = list(n2 - n3))
-##############################################
-glm_contr <- emmeans(germi,"Tr.", type ="pass")
 
-regrid(contrast(glm_contr, method = list(n1 - n2), type = "response"))
+
+
 
 
 ##### we can convert the rhe estimate to mean
 regrid(glm_coef, transform = "response")
-
 
 emmeans(germi, specs = pairwise ~ Tr., 
         at = list(sub.rate = c("Trt1", "Trt3") ) )
 
 
 ###############################################
-
-
+#Percentage of germinated seeds (Y) out of total seeds (N) in a randomized complete block design
 df <- read.csv("tabla.3.8.csv",header = TRUE)
 head(df)
 df_analisis<- df %>%
   rename(trt= Treatment, block=Block,y=Y..no..of.germinated.seeds.,n=N..total.no..of.seeds.) %>% 
   mutate(trt=as.factor(trt),block=as.factor(block), y2= y/n)
 
-model <- lm (y~ trt+block,data = df_analisis)
+model <- lm (y~trt+block,data = df_analisis)
+
 summary(model)
 coef(model)
+#(b) Trt least squares means
 lsmeans_model <- emmeans(model,~trt)
-
+#(c) Differences of Trt least squares means
 t1<- c(1,0,0)
 t2 <- c(0,1,0)
 t3 <- c(0,0,1)
-
 contrast(lsmeans_model, method = list(t1 - t2),type ="response")
 contrast(lsmeans_model, method = list(t1 - t3))
 contrast(lsmeans_model, method = list(t2 - t3))
@@ -213,14 +213,15 @@ contr <- list("tr1-tr2 vs tr3" = c(2, -1, -1),
 contrast(means, method = contr)
 
 
-
-model2 <- model <-glm(y2~trt+block,family = "binomial"(link = "logit"),data = df_analisis)
+#### Result of the analysis of variance in the binomial model
+model2 <- model <-glm(y2~trt+block,family = "binomial",data = df_analisis)
 summary(model2)
 
 emm_model2<-emmeans(model2,~trt) 
 
 contr <- list("tr1-tr2 " = c(1,-1,-1),
               "trt2 vs tr3" = c(0, 1, -1))
+
 emm<- contrast(emm_model2, method = contr,type="response")
 confint(emm, adjust = "sidak", level = 0.95)
 
