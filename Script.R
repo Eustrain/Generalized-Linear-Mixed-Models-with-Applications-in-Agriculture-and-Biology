@@ -1,10 +1,8 @@
 ##################################################################################
 ########### GENERALIZED LINEAR MIXED MODELS WITH  APPLICATIONS IN AGRICULTURE AND BIOLOGY
+
+
 ##### ANALYSIS OF COVARIANCE
-
-########################################
-##### Analisis convariance
-
 library(lme4)
 library(lsmeans)
 library(tidyverse)
