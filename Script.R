@@ -1,8 +1,7 @@
 ##################################################################################
 ########### GENERALIZED LINEAR MIXED MODELS WITH  APPLICATIONS IN AGRICULTURE AND BIOLOGY
-
-
 ##### ANALYSIS OF COVARIANCE
+### this are the principal librerary that we will used
 library(lme4)
 library(lsmeans)
 library(tidyverse)
